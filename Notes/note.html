@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Notes</title>
+</head>
+
+<body>
+    Notes: <select></select> <button id="add">Add</button><button id="delete">Delete</button><br><br>
+    <textarea rows="30" style="width: 95%;"></textarea>
+
+    <script>
+        let list = document.querySelector('select');
+        let note = document.querySelector("textarea");
+
+        let state;
+        function setState(newState) {
+            list.textContent = "";
+            for (let name of Object.keys(newState.notes)) {
+                let option = document.createElement('option');
+                option.textContent = name;
+                if (newState.selected == name) option.selected = true;
+                list.appendChild(option);
+            }
+            note.value = newState.notes[newState.selected];
+
+            localStorage.setItem("Notes", JSON.stringify(newState));
+            state = newState;
+        }
+
+        setState(JSON.parse(localStorage.getItem("Notes")) || {
+            notes: { "shopping list": "Carrots\nRaisins" },
+            selected: "shopping list"
+        });
+
+        list.addEventListener('change', () => {
+            setState({ notes: state.notes, selected: list.value });
+        });
+
+        note.addEventListener('input', () => {
+            setState({
+                notes: Object.assign({}, state.notes,
+                    { [state.selected]: note.value }),
+                selected: state.selected
+            });
+        });
+
+        document.querySelector("#add").addEventListener("click", () => {
+            let name = prompt("Note name");
+            if (name) setState({
+                notes: Object.assign({}, state.notes, { [name]: "" }),
+                selected: name
+            });
+        });
+
+        document.querySelector("#delete").addEventListener('click', () => {
+            let del = confirm("Sure to delete "+state.selected);
+            if (del) {
+                delete state.notes[state.selected];
+                setState({ notes: state.notes, selected: Object.keys(state.notes)[0] });
+            }
+        });
+    </script>
+</body>
+
+</html>
